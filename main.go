@@ -27,6 +27,18 @@ var (
 	testArgs   string
 )
 
+func runGoCmd(args ...string) (err error) {
+	command := "go"
+
+	// Use godep for godep based projects
+	if _, err := os.Stat("Godeps/Godeps.json"); err == nil {
+		args = append([]string{"go"}, args...)
+		command = "godep"
+	}
+
+	return runCmd(command, args...)
+}
+
 func runCmd(name string, args ...string) (err error) {
 	buf := new(commandBuffer)
 
@@ -46,13 +58,13 @@ func fullBuild() {
 	var err error
 
 	log.Println("glitch: building")
-	if err = runCmd("go", "build", buildArgs); err == nil {
+	if err = runGoCmd("build", buildArgs); err == nil {
 		log.Println("glitch: build OK - vetting")
 
-		if err = runCmd("go", "vet", vetArgs); err == nil {
+		if err = runGoCmd("vet", vetArgs); err == nil {
 			log.Println("glitch: vet OK - testing")
 
-			if err = runCmd("go", "test", testArgs); err == nil {
+			if err = runGoCmd("test", testArgs); err == nil {
 				log.Println("glitch: test OK")
 
 				if len(afterAllOk) > 0 {
